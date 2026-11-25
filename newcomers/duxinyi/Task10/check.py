@@ -14,6 +14,10 @@ LINK_RE = re.compile(r'(?<!!)\[(.*?)]\((.*?)\)')
 # 跳过外部地址的前缀
 SKIP_PREFIX = ("http://", "https://", "mailto:", "tel:", "ftp://", "data:")
 
+def clean_url(raw:str) -> str:
+    '''清除URL中的标题'''
+    raw = raw.split(' "')[0].split(' "')[0]
+    return raw
 
 def to_local_path(base: Path, raw: str):
     """把 URL 片段转成本地路径，外部链接、纯锚点返回 None"""
@@ -43,15 +47,17 @@ def check(file_path: Path):
     for match in IMG_RE.findall(content):
         # 取元组最后一个元素作为路径
         raw = match[-1].strip()
+        raw = clean_url(raw)
         target = to_local_path(base, raw)
         if target and not target.exists():
             broken_images.append(raw)
 
     for match in LINK_RE.findall(content):
         raw = match[-1].strip()
+        raw = clean_url(raw)
         target = to_local_path(base, raw)
         if target and not target.exists():
             broken_links.append(raw)
-
+            
     return broken_links, broken_images
 
